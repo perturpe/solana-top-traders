@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana Top Traders Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>Solana Top Traders Dashboard</h1>
+    </header>
+    <main>
+        <section id="traders">
+            <h2>Top 10 Traders</h2>
+            <ul id="trader-list"></ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 Solana Top Traders. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Fetch top traders from Birdeye API
+        async function fetchTopTraders() {
+            try {
+                const response = await fetch('https://api.birdeye.com/solana/top_traders');
+                const data = await response.json();
+                const traderList = document.getElementById('trader-list');
+                traderList.innerHTML = '';
+
+                data.traders.slice(0, 10).forEach(trader => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${trader.name} - ${trader.tradeVolume} SOL`;
+                    traderList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error fetching top traders:', error);
+            }
+        }
+
+        // Fetch top traders on page load
+        window.onload = fetchTopTraders;
+    </script>
+</body>
+</html>
