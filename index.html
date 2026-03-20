@@ -4,44 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solana Top Traders Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="script.js" defer></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #traders { margin-top: 20px; }
+        .trader { margin: 10px 0; border: 1px solid #ccc; padding: 10px; }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Solana Top Traders Dashboard</h1>
-    </header>
-    <main>
-        <section id="traders">
-            <h2>Top 10 Traders</h2>
-            <ul id="trader-list"></ul>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2026 Solana Top Traders. All rights reserved.</p>
-    </footer>
+    <h1>Solana Top Traders Dashboard</h1>
+    <button id="toggleAlerts">Toggle Alerts</button>
+    <div id="traders"></div>
+    <button id="downloadJSON">Download JSON</button>
 
     <script>
-        // Fetch top traders from Birdeye API
-        async function fetchTopTraders() {
-            try {
-                const response = await fetch('https://api.birdeye.com/solana/top_traders');
-                const data = await response.json();
-                const traderList = document.getElementById('trader-list');
-                traderList.innerHTML = '';
+        let alertsEnabled = true;
+        let traders = [];
 
-                data.traders.slice(0, 10).forEach(trader => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `${trader.name} - ${trader.tradeVolume} SOL`;
-                    traderList.appendChild(listItem);
-                });
-            } catch (error) {
-                console.error('Error fetching top traders:', error);
-            }
+        function fetchTraders() {
+            axios.get('https://api.birdeye.com/v1/traders')
+                .then(response => {
+                    traders = response.data;
+                    displayTraders();
+                })
+                .catch(error => console.error('Error fetching traders:', error));
         }
 
-        // Fetch top traders on page load
-        window.onload = fetchTopTraders;
+        function displayTraders() {
+            const tradersContainer = $('#traders');
+            tradersContainer.empty();
+            traders.forEach(trader => {
+                const traderDiv = $(`
+                    <div class="trader">
+                        <input type="text" value="${trader.name}" onchange="updateTraderName('${trader.id}', this.value)" />
+                        <span>${getRandomEmoji()}</span>
+                        <button onclick="copyToClipboard('${trader.link}')">Copy</button>
+                    </div>
+                `);
+                tradersContainer.append(traderDiv);
+            });
+        }
+
+        function getRandomEmoji() {
+            const emojis = ['😀', '🎉', '🚀', '🔥', '💎'];
+            return emojis[Math.floor(Math.random() * emojis.length)];
+        }
+
+        function toggleAlerts() {
+            alertsEnabled = !alertsEnabled;
+            alert('Alerts are now ' + (alertsEnabled ? 'enabled' : 'disabled')); 
+        }
+
+        function updateTraderName(id, newName) {
+            // API call to update trader name in your system
+            console.log('Updated trader ' + id + ' to ' + newName);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+
+        function downloadJSON() {
+            const blob = new Blob([JSON.stringify(traders, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'traders.json';
+            link.click();
+        }
+
+        $(document).ready(function() {
+            fetchTraders();
+            $('#toggleAlerts').click(toggleAlerts);
+            $('#downloadJSON').click(downloadJSON);
+        });
     </script>
 </body>
 </html>
